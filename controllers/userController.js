@@ -1,61 +1,70 @@
-const User = require("../models/user");
+const { request, response } = require("express");
+const userService = require("../services/userService");
 
-const getUsers = async (req = request, res = response) => {
+const getUsers = async (req, res) => {
   const { limite = 5, desde = 0 } = req.query;
-  const query = { estado: true };
-
-  const [total, usuarios] = await Promise.all([
-    User.countDocuments(query),
-    User.find(query).skip(Number(desde)).limit(Number(limite)),
-  ]);
-
-  res.json({
-    ok: true,
-    total,
-    usuarios,
-  });
+  try {
+    const { total, usuarios } = await userService.getUsers();
+    res.json({
+      ok: true,
+      total,
+      usuarios: usuarios.slice(Number(desde), Number(desde) + Number(limite)),
+    });
+  } catch (error) {
+    res
+      .status(error?.status || 500)
+      .json({ ok: false, data: { error: error?.message || error } });
+  }
 };
 
 const createUser = async (req, res = response) => {
-  const { nombre, correo, password, rol } = req.body;
-  const usuario = new User({ nombre, correo, password, rol });
+  try {
+    const { nombre, correo, password, rol } = req.body;
+    const usuario = await userService.createUser({
+      nombre,
+      correo,
+      password,
+      rol,
+    });
 
-  // Encriptar la contraseña
-  const salt = bcryptjs.genSaltSync();
-  usuario.password = bcryptjs.hashSync(password, salt);
-
-  // Guardar en BD
-  await usuario.save();
-
-  res.json({
-    ok: true,
-    usuario,
-  });
+    res.json({
+      ok: true,
+      usuario,
+    });
+  } catch (error) {
+    res
+      .status(error?.status || 500)
+      .json({ ok: false, data: { error: error?.message || error } });
+  }
 };
 
 const updateUser = async (req, res = response) => {
-  const { id } = req.params;
-  const { _id, password, google, correo, ...resto } = req.body;
+  try {
+    const { id } = req.params;
+    const { _id, password, google, correo, ...resto } = req.body;
+    const usuario = await userService.updateUser(id, resto);
 
-  if (password) {
-    // Encriptar la contraseña
-    const salt = bcryptjs.genSaltSync();
-    resto.password = bcryptjs.hashSync(password, salt);
+    res.json({
+      ok: true,
+      usuario,
+    });
+  } catch (error) {
+    res
+      .status(error?.status || 500)
+      .json({ ok: false, data: { error: error?.message || error } });
   }
-
-  const usuario = await User.findByIdAndUpdate(id, resto);
-
-  res.json({
-    ok: true,
-    usuario,
-  });
 };
 
 const deleteUser = async (req, res = response) => {
-  const { id } = req.params;
-  const usuario = await User.findByIdAndUpdate(id, { estado: false });
-
-  res.json({ ok: true, usuario });
+  try {
+    const { id } = req.params;
+    const usuario = await userService.deleteUser(id);
+    res.json({ ok: true, usuario });
+  } catch (error) {
+    res
+      .status(error?.status || 500)
+      .json({ ok: false, data: { error: error?.message || error } });
+  }
 };
 
 module.exports = {
