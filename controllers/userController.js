@@ -1,40 +1,34 @@
 const { request, response } = require("express");
 const userService = require("../services/userService");
+const Response = require("../helpers/response");
+
+const responseUsuario = new Response();
 
 const getUsers = async (req, res) => {
   const { limite = 5, desde = 0 } = req.query;
   try {
     const { total, usuarios } = await userService.getUsers();
-    res.json({
-      ok: true,
+    responseUsuario.success(res, "Usuarios obtenidos correctamente", {
       total,
-      usuarios: usuarios.slice(Number(desde), Number(desde) + Number(limite)),
+      usuarios: usuarios.slice(Number(desde), Number(limite) + Number(desde)),
     });
   } catch (error) {
-    res
-      .status(error?.status || 500)
-      .json({ ok: false, data: { error: error?.message || error } });
+    responseUsuario.error(res, error.msg, error.status || 500);
   }
 };
 
 const createUser = async (req, res = response) => {
   try {
-    const { nombre, correo, password, rol } = req.body;
+    const { nombre, email, password, rol } = req.body;
     const usuario = await userService.createUser({
       nombre,
-      correo,
+      email,
       password,
       rol,
     });
-
-    res.json({
-      ok: true,
-      usuario,
-    });
+    responseUsuario.success(res, "Usuario creado correctamente", usuario, 201);
   } catch (error) {
-    res
-      .status(error?.status || 500)
-      .json({ ok: false, data: { error: error?.message || error } });
+    responseUsuario.error(res, error.msg, error.status || 500);
   }
 };
 
@@ -44,14 +38,9 @@ const updateUser = async (req, res = response) => {
     const { _id, password, google, correo, ...resto } = req.body;
     const usuario = await userService.updateUser(id, resto);
 
-    res.json({
-      ok: true,
-      usuario,
-    });
+    responseUsuario.success(res, "Usuario actualizado correctamente", usuario);
   } catch (error) {
-    res
-      .status(error?.status || 500)
-      .json({ ok: false, data: { error: error?.message || error } });
+    responseUsuario.error(res, error.msg, error.status || 500);
   }
 };
 
@@ -59,11 +48,9 @@ const deleteUser = async (req, res = response) => {
   try {
     const { id } = req.params;
     const usuario = await userService.deleteUser(id);
-    res.json({ ok: true, usuario });
+    responseUsuario.success(res, "Usuario eliminado correctamente", usuario);
   } catch (error) {
-    res
-      .status(error?.status || 500)
-      .json({ ok: false, data: { error: error?.message || error } });
+    responseUsuario.error(res, error.msg, error.status || 500);
   }
 };
 

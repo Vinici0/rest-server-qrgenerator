@@ -17,7 +17,7 @@ const {
 
 const router = Router();
 
-router.get("/", validarJWT, getUsers);
+router.get("/", getUsers);
 
 router.post(
   "/",

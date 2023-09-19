@@ -26,6 +26,10 @@ const UserSchema = Schema({
     type: Boolean,
     default: false,
   },
+  estado: {
+    type: Boolean,
+    default: true,
+  },
   urlsheets: {
     type: String,
     default: "",
