@@ -6,7 +6,6 @@ const responseAuth = new Response();
 
 const login = async (req, res = response) => {
   const { correo, password } = req.body;
-
   try {
     const { usuario, token } = await userService.login(correo, password);
     responseAuth.success(res, "Login correcto", {

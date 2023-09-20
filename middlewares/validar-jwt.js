@@ -4,6 +4,7 @@ const Usuario = require("../models/user");
 const validarJWT = (req, res, next) => {
   // Leer el Token
   const token = req.header("x-token");
+  console.log(token);
 
   if (!token) {
     return res.status(401).json({
@@ -15,7 +16,7 @@ const validarJWT = (req, res, next) => {
   try {
     const { uid } = jwt.verify(token, process.env.JWT_SECRET);
     req.uid = uid;
-
+    console.log(uid);
     next();
   } catch (error) {
     return res.status(401).json({
@@ -27,7 +28,6 @@ const validarJWT = (req, res, next) => {
 
 const varlidarADMIN_ROLE = async (req, res, next) => {
   const uid = req.uid;
-
   try {
     const usuarioDB = await Usuario.findById(uid);
 
